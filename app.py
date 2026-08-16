@@ -131,13 +131,13 @@ def create_ui():
     .header-box { text-align: center; margin-bottom: 20px; }
     """
 
-    with gr.Blocks(css=custom_css, title="女团团舞指定对象AI抹除他人系统") as demo:
+    with gr.Blocks(css=custom_css, title="MagiCut 魔法剪辑 - AI 视频创作套件") as demo:
         points_state = gr.State([])
 
         gr.Markdown(
             """
-            # 💃 女团团舞单人隔离与他人AI抹除原型系统
-            **Dance Member Isolator & Multi-person Inpainting Prototype**  
+            # ✨ MagiCut 魔法剪辑 · 智能单人直拍工作台
+            **Next-Gen AI Magic Video Creation Suite**  
             基于 **Meta SAM 2 (视频级对象追踪)** 与 **ProPainter (时序光流背景修复)** 架构。
             """
         )
