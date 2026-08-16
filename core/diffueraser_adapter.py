@@ -84,7 +84,7 @@ class DiffuEraserAdapter:
             if progress_cb:
                 progress_cb(0.25, "Running Step 1: ProPainter Temporal Motion Prior...")
 
-            # 1. Priori Model
+            # 1. Priori Model (ProPainter)
             propainter = Propainter(propainter_dir, device=dev)
             propainter.forward(
                 input_video_path,
@@ -93,9 +93,13 @@ class DiffuEraserAdapter:
                 video_length=max_frames,
                 ref_stride=10,
                 neighbor_length=10,
-                subvideo_length=50,
+                subvideo_length=30,
                 mask_dilation=6
             )
+            del propainter
+            import gc
+            gc.collect()
+            torch.cuda.empty_cache()
 
             if progress_cb:
                 progress_cb(0.60, "Running Step 2: DiffuEraser Video Diffusion + BrushNet Generative Synthesis...")
@@ -114,11 +118,16 @@ class DiffuEraserAdapter:
                 removal_mask_video_path,
                 priori_path,
                 output_video_path,
-                max_img_size=max_img_size,
+                max_img_size=min(max_img_size, 640),
                 video_length=max_frames,
                 mask_dilation_iter=6,
+                nframes=8,
                 guidance_scale=0.0
             )
+
+            del video_inpainting_sd
+            gc.collect()
+            torch.cuda.empty_cache()
 
             if os.path.exists(priori_path):
                 os.remove(priori_path)
