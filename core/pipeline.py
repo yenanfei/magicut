@@ -113,9 +113,15 @@ class DancePersonRemoverPipeline:
 
         h, w = frames[0].shape[:2]
 
-        # 2. Track Target Person (SAM 2)
+        # 2. Detect All Humans & Extract Instance Polygons (YOLO/Detector)
         if progress_cb:
-            progress_cb(0.20, f"Tracking target member across {total_frames} frames...")
+            progress_cb(0.20, f"Segmenting all dancers & group instances across {total_frames} frames...")
+
+        all_humans_masks, all_detections = self.detector.segment_video_frames(frames)
+
+        # 3. Track Target Person with Exact Instance Contour
+        if progress_cb:
+            progress_cb(0.40, "Tracking target lead dancer with pixel-level precision...")
 
         self.tracker.init_video_state(video_path)
         target_masks = self.tracker.add_prompt_and_track(
@@ -124,18 +130,13 @@ class DancePersonRemoverPipeline:
             labels=prompt_labels,
             box=prompt_box,
             total_frames=total_frames,
-            frame_shape=(h, w)
+            frame_shape=(h, w),
+            video_detections=all_detections
         )
-
-        # 3. Detect All Humans (YOLO/Detector)
-        if progress_cb:
-            progress_cb(0.40, "Detecting all dancers & dance group formations...")
-
-        all_humans_masks = self.detector.segment_video_frames(frames)
 
         # 4. Compute Removal Masks (Mask Subtraction + Floor Shadow Dilation)
         if progress_cb:
-            progress_cb(0.55, "Calculating removal masks & shadow expansions...")
+            progress_cb(0.50, "Calculating removal masks & stage shadow expansions...")
 
         removal_masks, meta_list = self.mask_processor.process_sequence(
             all_humans_masks, target_masks

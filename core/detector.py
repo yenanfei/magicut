@@ -1,6 +1,6 @@
 """
 Human Instance Detector & Segmenter
-Extracts binary segmentation masks of all dance members in each video frame.
+Extracts binary segmentation masks and instance polygons of all dance members in each video frame.
 """
 
 import numpy as np
@@ -46,15 +46,17 @@ class HumanDetector:
         detections = []
 
         if self.model is None:
-            # Fallback mock detector (e.g. for testing without heavy model weights)
             return all_humans_mask, detections
+
+        # Ensure correct device selection
+        dev = "cuda" if torch.cuda.is_available() and self.device == "cuda" else "cpu"
 
         results = self.model.predict(
             source=frame_bgr,
             classes=[0],  # 0 is 'person' in COCO dataset
             conf=self.conf_threshold,
             iou=self.iou_threshold,
-            device=self.device,
+            device=dev,
             verbose=False
         )
 
@@ -67,13 +69,12 @@ class HumanDetector:
         raw_masks = res.masks.data.cpu().numpy()  # (N, H_mask, W_mask)
 
         for i, raw_mask in enumerate(raw_masks):
-            # Resize mask to original frame size
             mask_resized = cv2.resize(
                 raw_mask.astype(np.float32),
                 (w, h),
                 interpolation=cv2.INTER_LINEAR
             )
-            mask_binary = (mask_resized > 0.5).astype(np.uint8) * 255
+            mask_binary = (mask_resized > 0.45).astype(np.uint8) * 255
 
             all_humans_mask = np.bitwise_or(all_humans_mask, mask_binary)
 
@@ -85,12 +86,14 @@ class HumanDetector:
 
         return all_humans_mask, detections
 
-    def segment_video_frames(self, frames_bgr: List[np.ndarray]) -> List[np.ndarray]:
+    def segment_video_frames(self, frames_bgr: List[np.ndarray]) -> Tuple[List[np.ndarray], List[List[Dict]]]:
         """
-        Segments all frames in batch or sequence.
+        Segments all frames and returns both combined masks and detailed per-frame instance detections.
         """
         all_masks = []
+        all_detections = []
         for frame in frames_bgr:
-            mask, _ = self.segment_frame(frame)
+            mask, dets = self.segment_frame(frame)
             all_masks.append(mask)
-        return all_masks
+            all_detections.append(dets)
+        return all_masks, all_detections
