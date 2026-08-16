@@ -27,13 +27,16 @@ mask_processor:
   occlusion_iou_thresh: 0.15
 
 inpainter:
-  engine: "propainter" # "propainter" or "flow_telea" (fast fallback)
-  propainter_weights: "weights/ProPainter.pth"
-  raft_weights: "weights/raft-things.pth"
-  recurrent_flow_weights: "weights/recurrent_flow_completion.pth"
-  subvideo_length: 80 # Number of frames per chunk to prevent OOM
-  neighbor_stride: 10 # Sample step for reference frames
-  flow_mask_dilates: 8
+  engine: "diffueraser" # "diffueraser" (SOTA Diffusion), "spatio_temporal" (fast flow), "propainter"
+  diffueraser_weights: "weights/diffuEraser"
+  sd_base_weights: "weights/stable-diffusion-v1-5"
+  sd_vae_weights: "weights/sd-vae-ft-mse"
+  pcm_weights: "weights/PCM_Weights"
+  propainter_weights: "weights/propainter"
+  pcm_steps: "2-Step" # "2-Step" (ultra-fast) or "4-Step" (high-quality)
+  subvideo_length: 50
+  neighbor_stride: 10
+  mask_dilation: 6
 
 output:
   output_fps: null # null means keep original video fps
