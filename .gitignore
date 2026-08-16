@@ -1,0 +1,33 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# PyTorch and model weights
+*.pt
+*.pth
+*.onnx
+*.engine
+weights/*
+!weights/.gitkeep
+
+# Video outputs & temporary test files
+*.mp4
+*.avi
+*.mov
+outputs/*
+!outputs/.gitkeep
+tests/*
+!tests/.gitkeep
+
+# Virtual environments
+.venv/
+env/
+venv/
+ENV/
+
+# IDE & OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

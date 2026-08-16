@@ -1,0 +1,41 @@
+# Dance Person Remover Configuration
+
+system:
+  device: "cuda" # "cuda" or "cpu"
+  mixed_precision: true # Use fp16 for faster inference & less VRAM
+
+sam2:
+  model_type: "sam2_hiera_l" # sam2_hiera_t, sam2_hiera_s, sam2_hiera_b+, sam2_hiera_l
+  checkpoint_path: "weights/sam2_hiera_large.pt"
+  model_cfg: "sam2_hiera_l.yaml"
+
+detector:
+  model_name: "yolo11x-seg.pt" # yolo11n-seg.pt, yolo11s-seg.pt, yolo11x-seg.pt
+  conf_threshold: 0.35
+  iou_threshold: 0.6
+  classes: [0] # 0 = person in COCO dataset
+
+mask_processor:
+  # General dilation around other members to eliminate ghost edges
+  general_dilation_kernel: 7
+  # Directional dilation downwards (Y-axis) to capture stage floor shadows
+  shadow_dilation_y: 25
+  shadow_dilation_x: 9
+  # Edge feathering blur kernel size (must be odd)
+  feather_kernel: 5
+  # IoU overlap threshold to detect severe occlusion
+  occlusion_iou_thresh: 0.15
+
+inpainter:
+  engine: "propainter" # "propainter" or "flow_telea" (fast fallback)
+  propainter_weights: "weights/ProPainter.pth"
+  raft_weights: "weights/raft-things.pth"
+  recurrent_flow_weights: "weights/recurrent_flow_completion.pth"
+  subvideo_length: 80 # Number of frames per chunk to prevent OOM
+  neighbor_stride: 10 # Sample step for reference frames
+  flow_mask_dilates: 8
+
+output:
+  output_fps: null # null means keep original video fps
+  save_intermediate_masks: true
+  codec: "libx264"

@@ -1,0 +1,22 @@
+# Core AI & Computation
+torch>=2.3.0
+torchvision>=0.18.0
+numpy>=1.24.0
+scipy>=1.10.0
+
+# Computer Vision & Video Processing
+opencv-python>=4.8.0
+opencv-contrib-python>=4.8.0
+pillow>=10.0.0
+ffmpeg-python>=0.2.0
+imageio>=2.31.0
+imageio-ffmpeg>=0.4.9
+
+# Human Detection & Segmentation
+ultralytics>=8.3.0
+
+# Interactive Frontend & Visualization
+gradio>=4.30.0
+matplotlib>=3.7.0
+tqdm>=4.65.0
+pyyaml>=6.0.1
