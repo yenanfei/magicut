@@ -262,19 +262,30 @@ class SpatioTemporalInpainter:
 class VideoInpainter:
     def __init__(
         self,
-        engine: str = "spatio_temporal",
-        propainter_weights: str = "weights/ProPainter.pth",
-        subvideo_length: int = 80,
+        engine: str = "diffueraser",
+        propainter_weights: str = "weights/propainter",
+        subvideo_length: int = 50,
         neighbor_stride: int = 10,
         device: str = "cuda" if torch.cuda.is_available() else "cpu"
     ):
         self.device = device
         self.engine = engine
+        self.subvideo_length = subvideo_length
+        self.neighbor_stride = neighbor_stride
+        
         self.spatio_temporal_inpainter = SpatioTemporalInpainter(
             temporal_window=30,
             blend_kernel=7,
             temporal_smoothing_alpha=0.85
         )
+
+        self.diffueraser_adapter = None
+        if self.engine == "diffueraser":
+            try:
+                from .diffueraser_adapter import DiffuEraserAdapter
+                self.diffueraser_adapter = DiffuEraserAdapter(device=self.device)
+            except Exception as e:
+                print(f"[Inpainter] DiffuEraser adapter note: {e}. Will fallback to spatio-temporal flow.")
 
     def inpaint_video(
         self,
@@ -283,8 +294,65 @@ class VideoInpainter:
         progress_callback=None
     ) -> List[np.ndarray]:
         """
-        Performs high-fidelity, flicker-free background reconstruction.
+        Performs high-fidelity background reconstruction using DiffuEraser or SpatioTemporal flow.
         """
+        num_frames = len(frames_bgr)
+        if num_frames == 0:
+            return []
+
+        h, w = frames_bgr[0].shape[:2]
+
+        if self.engine == "diffueraser" and self.diffueraser_adapter is not None and self.diffueraser_adapter.is_ready:
+            try:
+                if progress_callback:
+                    progress_callback(0.1, "Preparing video tensors for DiffuEraser diffusion model...")
+
+                temp_dir = "outputs/temp_diffueraser"
+                os.makedirs(temp_dir, exist_ok=True)
+                temp_video_in = os.path.join(temp_dir, "input_vid.mp4")
+                temp_mask_in = os.path.join(temp_dir, "input_mask.mp4")
+                temp_out = os.path.join(temp_dir, "diffueraser_out.mp4")
+
+                fps = 25.0
+                fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+
+                out_v = cv2.VideoWriter(temp_video_in, fourcc, fps, (w, h))
+                for f in frames_bgr:
+                    out_v.write(f)
+                out_v.release()
+
+                out_m = cv2.VideoWriter(temp_mask_in, fourcc, fps, (w, h), isColor=True)
+                for m in removal_masks:
+                    m_3ch = cv2.cvtColor(m, cv2.COLOR_GRAY2BGR)
+                    out_m.write(m_3ch)
+                out_m.release()
+
+                self.diffueraser_adapter.run_diffueraser_pipeline(
+                    input_video_path=temp_video_in,
+                    removal_mask_video_path=temp_mask_in,
+                    output_video_path=temp_out,
+                    max_frames=num_frames,
+                    max_img_size=max(w, h),
+                    progress_cb=progress_callback
+                )
+
+                # Read back result frames
+                cap = cv2.VideoCapture(temp_out)
+                res_frames = []
+                while cap.isOpened():
+                    ret, fr = cap.read()
+                    if not ret:
+                        break
+                    res_frames.append(fr)
+                cap.release()
+
+                if len(res_frames) > 0:
+                    return res_frames
+
+            except Exception as e:
+                print(f"[Inpainter] DiffuEraser execution exception ({e}). Falling back to SpatioTemporalInpainter.")
+
+        # Default SOTA SpatioTemporal flow background reconstruction
         return self.spatio_temporal_inpainter.inpaint_sequence(
             frames_bgr=frames_bgr,
             removal_masks=removal_masks,
