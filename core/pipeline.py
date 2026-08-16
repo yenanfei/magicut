@@ -8,6 +8,7 @@ import time
 import cv2
 import numpy as np
 import yaml
+import torch
 from typing import List, Dict, Tuple, Optional, Callable
 
 from .detector import HumanDetector
@@ -21,7 +22,12 @@ class DancePersonRemoverPipeline:
         self.config_path = config_path
         self.config = self._load_config(config_path)
 
-        device = self.config.get("system", {}).get("device", "cuda")
+        requested_device = self.config.get("system", {}).get("device", "cuda")
+        if requested_device == "cuda" and not torch.cuda.is_available():
+            print("[System] CUDA not available on this environment. Automatically falling back to CPU.")
+            device = "cpu"
+        else:
+            device = requested_device
 
         # Initialize sub-modules
         det_cfg = self.config.get("detector", {})

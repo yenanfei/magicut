@@ -10,7 +10,7 @@ sam2:
   model_cfg: "sam2_hiera_l.yaml"
 
 detector:
-  model_name: "yolo11x-seg.pt" # yolo11n-seg.pt, yolo11s-seg.pt, yolo11x-seg.pt
+  model_name: "yolo11n-seg.pt" # yolo11n-seg.pt (fast on CPU), yolo11s-seg.pt, yolo11x-seg.pt
   conf_threshold: 0.35
   iou_threshold: 0.6
   classes: [0] # 0 = person in COCO dataset
