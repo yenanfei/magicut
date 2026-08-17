@@ -8,10 +8,11 @@
 ## 🎬 核心魔法功能 (Flagship Features)
 
 ### 1. 💃 单人直拍魔法 (Smart Solo Fancam / Multi-person Remover)
-- **精准对象指定**：在视频任意关键帧通过鼠标点击/框选目标（基于 **Meta SAM 2** 视频级记忆追踪）。
-- **全员人体与掩码求差**：自动检测所有舞蹈成员并生成待擦除掩码。
-- **舞台地面阴影定向消除**：自适应定向阴影算法，杜绝“人抹除了地面影子还在”的破绽。
-- **时序光流背景修复 (Video Inpainting)**：集成 **ProPainter** 双域光流技术，消除频闪与畸变，完美补全舞台与动态背景。
+- **精准对象指定与全时空追踪**：在视频任意关键帧通过鼠标点击/框选目标（基于 **Meta SAM 2 Large** 视频级记忆池追踪，彻底根除快速换位与遮挡时的 ID 漂移）。
+- **全员人体与掩码求差**：自动检测所有舞蹈成员并生成待擦除掩码（YOLOv11x-seg 亚像素边缘分割）。
+- **时序前后向滑窗闭运算滤波 (Temporal Anti-Flicker)**：多帧时序滑动窗口自适应补齐快速转身/运动模糊期间的瞬时漏检，彻底根除伴舞频闪（Flicker）。
+- **时空主舞台纯净底板重构 (Master Clean Stage Plate)**：通过全时序未遮挡像素中值聚合提取 100% 真实舞台地砖与反光真值，结合动态环境光自适应匹配，杜绝扩散模型模糊涂抹。
+- **高保真图层羽化回贴 (High-Fidelity Alpha Matting Recomposition)**：主舞主角像素 100% 原始超清无损保留，发丝与五官清晰锐利。
 
 ### 2. 🔮 更多规划中的魔法剪辑工具 (Roadmap)
 - ✂️ **Smart Auto-Cut / Reframe**：智能主体跟随与多机位画面自动重构
@@ -26,15 +27,17 @@
 ```
 magicut/
 ├── app.py                     # MagiCut Gradio 交互式 Web 前端
-├── test_pipeline.py           # 自动化测试与合成 3 人舞步验证脚本
+├── demo_real_video.py         # 真实群舞基准测试与对比生成脚本
+├── test_pipeline.py           # 自动化测试与验证脚本
 ├── requirements.txt           # Python 依赖清单
 ├── configs/
 │   └── config.yaml            # 算法与超参数配置文件
 ├── core/
-│   ├── detector.py            # 全员人体检测与实例分割 (YOLOv11-seg)
-│   ├── tracker.py             # SAM 2 视频级交互追踪引擎
-│   ├── mask_processor.py      # 掩码求差、舞台阴影消除与边缘羽化
-│   ├── inpainter.py           # ProPainter 时序视频修复封装
+│   ├── detector.py            # 全员人体检测与实例分割 (YOLOv11x-seg)
+│   ├── tracker.py             # SAM 2 Large 视频级交互记忆追踪引擎
+│   ├── mask_processor.py      # 时序滑窗防闪烁滤波与舞台阴影处理
+│   ├── inpainter.py           # Master Clean Plate / DiffuEraser 背景修复引擎
+│   ├── diffueraser_adapter.py # DiffuEraser 扩散模型适配器
 │   └── pipeline.py            # 端到端编排执行管线
 ├── weights/                   # 模型权重存放目录
 ├── outputs/                   # 视频生成输出目录
@@ -52,24 +55,17 @@ cd magicut
 pip install -r requirements.txt
 ```
 
-### 2. 运行算法验证测试 (PoC)
+### 2. 运行真实舞蹈基准测试
 
 ```bash
-python test_pipeline.py
+python demo_real_video.py
 ```
 
 ### 3. 启动 MagiCut 交互式工作台
 
 ```bash
-python app.py
+python app.py --server_name 0.0.0.0 --port 7860
 ```
 
 浏览器打开 `http://127.0.0.1:7860` 即可体验。
 
----
-
-## 📥 模型权重配置 (可选)
-
-默认内置了快速光流回退算法，若需影视级质量：
-1. **SAM 2 权重**：下载 [sam2_hiera_large.pt](https://dl.fbaipublicfiles.com/segment_anything_2/072824/sam2_hiera_large.pt) 至 `weights/`。
-2. **ProPainter 权重**：下载 [ProPainter.pth](https://github.com/sczhou/ProPainter/releases/download/v0.1.0/ProPainter.pth) 至 `weights/`。

@@ -142,29 +142,90 @@ class DancePersonRemoverPipeline:
             all_humans_masks, target_masks
         )
 
-        # 5. Inpaint Video Background (ProPainter / Flow Engine)
+        # Sync inpainter config dynamically if changed
+        inp_cfg = self.config.get("inpainter", {})
+        self.inpainter.engine = inp_cfg.get("engine", self.inpainter.engine)
+        self.inpainter.pcm_steps = inp_cfg.get("pcm_steps", self.inpainter.pcm_steps)
+
+        # 5. Inpaint Video Background (ProPainter / DiffuEraser / Flow Engine)
         if progress_cb:
-            progress_cb(0.70, "Restoring stage background (Video Inpainting)...")
+            progress_cb(0.70, f"Restoring stage background ({self.inpainter.engine})...")
 
         def inpaint_sub_cb(prog, txt):
             if progress_cb:
                 progress_cb(0.70 + prog * 0.20, f"Inpainting: {txt}")
 
-        clean_frames = self.inpainter.inpaint_video(
-            frames, removal_masks, progress_callback=inpaint_sub_cb
+        clean_bg_frames = self.inpainter.inpaint_video(
+            frames, removal_masks, all_humans_masks=all_humans_masks, progress_callback=inpaint_sub_cb
         )
 
-        # 6. Save Result Video
+        # 6. High-Fidelity Foreground Layer Recomposition
+        # Preserves 100% of the lead protagonist's original crisp pixels, facial details, and hair
+        if progress_cb:
+            progress_cb(0.92, "Performing high-fidelity foreground alpha compositing...")
+
+        final_solo_frames = []
+        for i in range(len(frames)):
+            orig_f = frames[i]
+            bg_f = clean_bg_frames[i]
+            if bg_f.shape[1] != w or bg_f.shape[0] != h:
+                bg_f = cv2.resize(bg_f, (w, h), interpolation=cv2.INTER_LANCZOS4)
+
+            rem_m = removal_masks[i]
+            # Soft feathering on removal mask boundary for seamless background inpainting blend
+            rem_mask_float = rem_m.astype(np.float32) / 255.0
+            rem_alpha = cv2.GaussianBlur(rem_mask_float, (9, 9), 2.0)[:, :, None]
+
+            # Clean stage background: 100% pristine original background outside removal + Inpainted stage inside removal
+            clean_stage_bg = (bg_f.astype(np.float32) * rem_alpha + orig_f.astype(np.float32) * (1.0 - rem_alpha)).clip(0, 255).astype(np.uint8)
+
+            t_mask = target_masks[i]
+            if np.count_nonzero(t_mask) > 0:
+                # Soft alpha matte with Gaussian smoothing around contours
+                t_mask_float = t_mask.astype(np.float32) / 255.0
+                alpha = cv2.GaussianBlur(t_mask_float, (7, 7), 1.5)[:, :, None]
+                # Seamless blending: Original protagonist + Restored Clean Stage Background
+                comp = (orig_f.astype(np.float32) * alpha + clean_stage_bg.astype(np.float32) * (1.0 - alpha)).clip(0, 255).astype(np.uint8)
+                final_solo_frames.append(comp)
+            else:
+                final_solo_frames.append(clean_stage_bg)
+
+        # 7. Save Result Video
         if progress_cb:
             progress_cb(0.95, "Encoding clean solo video...")
 
         os.makedirs(os.path.dirname(os.path.abspath(output_path)), exist_ok=True)
+        temp_no_audio = output_path.replace(".mp4", "_raw.mp4")
         fourcc = cv2.VideoWriter_fourcc(*"mp4v")
-        out = cv2.VideoWriter(output_path, fourcc, fps, (w, h))
+        out = cv2.VideoWriter(temp_no_audio, fourcc, fps, (w, h))
 
-        for f in clean_frames:
+        for f in final_solo_frames:
             out.write(f)
         out.release()
+
+        # Mux original audio if available
+        try:
+            import subprocess
+            cmd = [
+                "ffmpeg", "-y",
+                "-i", temp_no_audio,
+                "-i", video_path,
+                "-c:v", "libx264",
+                "-pix_fmt", "yuv420p",
+                "-c:a", "aac",
+                "-map", "0:v:0",
+                "-map", "1:a:0?",
+                "-shortest",
+                output_path
+            ]
+            subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            if os.path.exists(temp_no_audio):
+                os.remove(temp_no_audio)
+        except Exception:
+            if os.path.exists(temp_no_audio):
+                if os.path.exists(output_path):
+                    os.remove(output_path)
+                os.rename(temp_no_audio, output_path)
 
         elapsed = time.time() - start_time
         if progress_cb:
@@ -178,3 +239,45 @@ class DancePersonRemoverPipeline:
             "elapsed_sec": elapsed,
             "meta": meta_list
         }
+
+    def process_video(
+        self,
+        video_path: str,
+        target_prompt: str = "center dancer",
+        output_path: str = "outputs/solo_video.mp4",
+        max_frames: Optional[int] = None,
+        progress_cb: Optional[Callable[[float, str], None]] = None
+    ) -> Dict:
+        """
+        High-level wrapper to process a video with text prompt describing the target person.
+        """
+        # Determine prompt coordinates from video dimensions & prompt description
+        cap = cv2.VideoCapture(video_path)
+        w = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)) or 640
+        h = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)) or 360
+        cap.release()
+
+        prompt_lower = target_prompt.lower()
+        if "left" in prompt_lower:
+            prompt_pts = np.array([[w * 0.25, h * 0.55]], dtype=np.float32)
+        elif "right" in prompt_lower:
+            prompt_pts = np.array([[w * 0.75, h * 0.55]], dtype=np.float32)
+        else:  # default center dancer
+            prompt_pts = np.array([[w * 0.50, h * 0.55]], dtype=np.float32)
+
+        prompt_lbls = np.array([1], dtype=np.int32)
+
+        return self.run(
+            video_path=video_path,
+            output_path=output_path,
+            keyframe_idx=0,
+            prompt_points=prompt_pts,
+            prompt_labels=prompt_lbls,
+            max_frames=max_frames,
+            progress_cb=progress_cb
+        )
+
+
+# Alias for experimental interface compatibility
+MagiCutPipeline = DancePersonRemoverPipeline
+

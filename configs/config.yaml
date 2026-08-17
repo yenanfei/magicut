@@ -10,9 +10,9 @@ sam2:
   model_cfg: "sam2_hiera_l.yaml"
 
 detector:
-  model_name: "yolo11n-seg.pt" # yolo11n-seg.pt (fast on CPU), yolo11s-seg.pt, yolo11x-seg.pt
-  conf_threshold: 0.35
-  iou_threshold: 0.6
+  model_name: "yolo11x-seg.pt" # Upgraded to SOTA YOLOv11x for crisp limb & contour segmentation
+  conf_threshold: 0.30
+  iou_threshold: 0.5
   classes: [0] # 0 = person in COCO dataset
 
 mask_processor:
@@ -27,7 +27,7 @@ mask_processor:
   occlusion_iou_thresh: 0.15
 
 inpainter:
-  engine: "diffueraser" # "diffueraser" (SOTA Diffusion), "spatio_temporal" (fast flow), "propainter"
+  engine: "clean_plate" # "clean_plate" (SOTA Master Clean Plate), "diffueraser", "propainter"
   diffueraser_weights: "weights/diffuEraser"
   sd_base_weights: "weights/stable-diffusion-v1-5"
   sd_vae_weights: "weights/sd-vae-ft-mse"

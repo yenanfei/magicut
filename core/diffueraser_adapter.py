@@ -50,6 +50,56 @@ class DiffuEraserAdapter:
         else:
             print("[DiffuEraser] Model weights need to be downloaded to weights/ folder before running diffusion inference.")
 
+    def run_propainter_pipeline(
+        self,
+        input_video_path: str,
+        removal_mask_video_path: str,
+        output_video_path: str,
+        max_frames: int = 150,
+        progress_cb=None
+    ) -> str:
+        """
+        Runs standalone ProPainter temporal optical flow background reconstruction.
+        """
+        if progress_cb:
+            progress_cb(0.1, "Initializing ProPainter Flow Pipeline...")
+
+        os.makedirs(os.path.dirname(os.path.abspath(output_video_path)), exist_ok=True)
+
+        try:
+            from propainter.inference import Propainter, get_device
+
+            dev = get_device()
+            propainter_dir = os.path.join(self.weights_dir, "propainter")
+
+            if progress_cb:
+                progress_cb(0.3, "Running ProPainter Bidirectional Flow Propagation...")
+
+            propainter = Propainter(propainter_dir, device=dev)
+            propainter.forward(
+                input_video_path,
+                removal_mask_video_path,
+                output_video_path,
+                video_length=max_frames,
+                ref_stride=10,
+                neighbor_length=10,
+                subvideo_length=30,
+                mask_dilation=6
+            )
+            del propainter
+            import gc
+            gc.collect()
+            torch.cuda.empty_cache()
+
+            if progress_cb:
+                progress_cb(1.0, "ProPainter Flow Baseline Complete!")
+
+            return output_video_path
+
+        except Exception as e:
+            print(f"[ProPainter] Error during inference: {e}")
+            raise e
+
     def run_diffueraser_pipeline(
         self,
         input_video_path: str,
@@ -57,15 +107,17 @@ class DiffuEraserAdapter:
         output_video_path: str,
         max_frames: int = 150,
         max_img_size: int = 720,
+        pcm_steps: Optional[str] = None,
         progress_cb=None
     ) -> str:
         """
         Runs the full DiffuEraser multi-model fusion pipeline:
         1. Generates ProPainter prior video
-        2. Denoises via DiffuEraser UNet + BrushNet branch + PCM 2-Step sampler
+        2. Denoises via DiffuEraser UNet + BrushNet branch + PCM sampler
         """
+        steps = pcm_steps or self.pcm_steps or "2-Step"
         if progress_cb:
-            progress_cb(0.1, "Initializing DiffuEraser Diffusion Pipeline...")
+            progress_cb(0.1, f"Initializing DiffuEraser Pipeline ({steps})...")
 
         os.makedirs(os.path.dirname(os.path.abspath(output_video_path)), exist_ok=True)
         results_dir = os.path.dirname(os.path.abspath(output_video_path))
@@ -102,7 +154,7 @@ class DiffuEraserAdapter:
             torch.cuda.empty_cache()
 
             if progress_cb:
-                progress_cb(0.60, "Running Step 2: DiffuEraser Video Diffusion + BrushNet Generative Synthesis...")
+                progress_cb(0.60, f"Running Step 2: DiffuEraser Video Diffusion ({steps}) + BrushNet Synthesis...")
 
             # 2. DiffuEraser Diffusion
             video_inpainting_sd = DiffuEraser(
@@ -110,7 +162,7 @@ class DiffuEraserAdapter:
                 base_model,
                 vae_path,
                 diffueraser_path,
-                ckpt=self.pcm_steps
+                ckpt=steps
             )
 
             video_inpainting_sd.forward(
@@ -140,3 +192,4 @@ class DiffuEraserAdapter:
         except Exception as e:
             print(f"[DiffuEraser] Error during diffusion inference: {e}")
             raise e
+

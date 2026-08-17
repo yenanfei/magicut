@@ -174,8 +174,19 @@ class SAM2VideoTracker:
 
     def init_video_state(self, video_path_or_frames):
         if self.is_sam2_available and self.predictor is not None:
-            if isinstance(video_path_or_frames, str):
-                self.inference_state = self.predictor.init_state(video_path=video_path_or_frames)
+            try:
+                if isinstance(video_path_or_frames, str):
+                    self.inference_state = self.predictor.init_state(video_path=video_path_or_frames)
+                elif isinstance(video_path_or_frames, list):
+                    # Write frames to temp dir for SAM2
+                    import tempfile
+                    temp_dir = tempfile.mkdtemp(prefix="sam2_frames_")
+                    for idx, fr in enumerate(video_path_or_frames):
+                        cv2.imwrite(os.path.join(temp_dir, f"{idx:05d}.jpg"), fr)
+                    self.inference_state = self.predictor.init_state(video_path=temp_dir)
+            except Exception as e:
+                print(f"[SAM2 Tracker] Warning: init_state failed ({e}). Falling back to YOLO tracker.")
+                self.inference_state = {"type": "instance_tracker", "video": video_path_or_frames}
         else:
             self.inference_state = {"type": "instance_tracker", "video": video_path_or_frames}
 
@@ -191,25 +202,30 @@ class SAM2VideoTracker:
     ) -> List[np.ndarray]:
         h, w = frame_shape
 
-        if self.is_sam2_available and self.predictor is not None and self.inference_state is not None:
-            _, out_obj_ids, out_mask_logits = self.predictor.add_new_points_or_box(
-                inference_state=self.inference_state,
-                frame_idx=keyframe_idx,
-                obj_id=1,
-                points=points,
-                labels=labels,
-                box=box,
-            )
+        if self.is_sam2_available and self.predictor is not None and isinstance(self.inference_state, dict) and "num_frames" in self.inference_state:
+            try:
+                _, out_obj_ids, out_mask_logits = self.predictor.add_new_points_or_box(
+                    inference_state=self.inference_state,
+                    frame_idx=keyframe_idx,
+                    obj_id=1,
+                    points=points,
+                    labels=labels,
+                    box=box,
+                )
 
-            video_segments = {}
-            for out_frame_idx, out_obj_ids, out_mask_logits in self.predictor.propagate_in_video(self.inference_state):
-                mask_bin = (out_mask_logits[0] > 0.0).cpu().numpy().squeeze().astype(np.uint8) * 255
-                video_segments[out_frame_idx] = mask_bin
+                video_segments = {}
+                for out_frame_idx, out_obj_ids, out_mask_logits in self.predictor.propagate_in_video(self.inference_state):
+                    mask_raw = (out_mask_logits[0] > 0.0).cpu().numpy().squeeze().astype(np.uint8) * 255
+                    if mask_raw.shape[:2] != (h, w):
+                        mask_raw = cv2.resize(mask_raw, (w, h), interpolation=cv2.INTER_NEAREST)
+                    video_segments[out_frame_idx] = mask_raw
 
-            target_masks = [video_segments.get(i, np.zeros((h, w), dtype=np.uint8)) for i in range(len(video_segments))]
-            return target_masks
+                target_masks = [video_segments.get(i, np.zeros((h, w), dtype=np.uint8)) for i in range(total_frames)]
+                return target_masks
+            except Exception as e:
+                print(f"[SAM2 Tracker] Error during propagation ({e}). Falling back to YOLO tracker.")
 
-        elif video_detections is not None:
+        if video_detections is not None:
             # Exact YOLO instance tracking
             return self.instance_tracker.track_target_from_detections(
                 video_detections=video_detections,
@@ -218,5 +234,4 @@ class SAM2VideoTracker:
                 frame_shape=frame_shape
             )
 
-        else:
-            return [np.zeros((h, w), dtype=np.uint8) for _ in range(total_frames)]
+        return [np.zeros((h, w), dtype=np.uint8) for _ in range(total_frames)]

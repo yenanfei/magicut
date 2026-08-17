@@ -12,8 +12,8 @@ class DanceMaskProcessor:
     def __init__(
         self,
         general_dilation_kernel: int = 7,
-        shadow_dilation_y: int = 25,
-        shadow_dilation_x: int = 9,
+        shadow_dilation_y: int = 12,
+        shadow_dilation_x: int = 5,
         feather_kernel: int = 5,
         occlusion_iou_thresh: float = 0.15
     ):
@@ -23,30 +23,15 @@ class DanceMaskProcessor:
         self.feather_kernel = feather_kernel
         self.occlusion_iou_thresh = occlusion_iou_thresh
 
-        # Standard circular / elliptical kernel for general dilation
+        # Standard circular / elliptical kernel for general boundary dilation
         self.general_kernel = cv2.getStructuringElement(
             cv2.MORPH_ELLIPSE, (self.general_dilation, self.general_dilation)
         )
-        
-        # Asymmetrical directional kernel: extends heavily downward towards floor for dance stage shadows
-        self.shadow_kernel = self._create_directional_shadow_kernel(
-            self.shadow_dilation_x, self.shadow_dilation_y
-        )
 
-    def _create_directional_shadow_kernel(self, kx: int, ky: int) -> np.ndarray:
-        """
-        Creates a kernel with anchor at the top center, expanding downwards towards the stage floor.
-        """
-        kernel = np.zeros((ky, kx), dtype=np.uint8)
-        # Fill a cone/ellipse extending downwards
-        center_x = kx // 2
-        for y in range(ky):
-            # Spread widens slightly as it goes down
-            spread = int((center_x) * (y / max(1, ky - 1)))
-            x_min = max(0, center_x - spread)
-            x_max = min(kx, center_x + spread + 1)
-            kernel[y, x_min:x_max] = 1
-        return kernel
+        # Directional foot shadow dilation kernel (downwards only)
+        self.shadow_kernel = cv2.getStructuringElement(
+            cv2.MORPH_RECT, (self.shadow_dilation_x, self.shadow_dilation_y)
+        )
 
     def compute_removal_mask(
         self,
@@ -54,16 +39,12 @@ class DanceMaskProcessor:
         target_mask: np.ndarray
     ) -> Tuple[np.ndarray, Dict]:
         """
-        Calculates the exact area to be erased (Removal Mask).
+        Calculates the precise area to be erased (Removal Mask).
         
         Formula:
             Other_Humans = All_Humans AND (NOT Target)
             Expanded_Removal = DirectionalDilation(Other_Humans)
             Clean_Removal = Expanded_Removal AND (NOT Protected_Target)
-
-        Returns:
-            final_removal_mask: uint8 (H, W) where 255 represents pixels to erase
-            meta_info: Dictionary containing occlusion status and statistics
         """
         h, w = target_mask.shape[:2]
 
@@ -80,32 +61,24 @@ class DanceMaskProcessor:
         overlap_ratio = intersect_area / max(1, target_area)
         is_occluded = overlap_ratio > self.occlusion_iou_thresh
 
-        # 3. Apply general dilation to cover clothing fringes and hair motion blur
+        # 3. Apply controlled general dilation to cover clothing fringes and hair
         other_dilated = cv2.dilate(other_humans_raw, self.general_kernel, iterations=1)
 
-        # 4. Apply directional floor shadow dilation to capture stage lighting shadows
-        shadow_expanded = cv2.filter2D(
-            other_dilated.astype(np.float32), -1, self.shadow_kernel
-        )
-        shadow_mask = (shadow_expanded > 0).astype(np.uint8) * 255
+        # 4. Apply subtle downwards foot shadow dilation
+        shadow_dilated = cv2.dilate(other_dilated, self.shadow_kernel, iterations=1)
 
-        # Combined removal candidate
-        removal_candidate = cv2.bitwise_or(other_dilated, shadow_mask)
-
-        # 5. Strict Target Protection: Ensure the target person is NEVER erased
-        # Protect target with a slight margin
+        # 5. Strict Target Protection: Ensure the target protagonist is NEVER erased
         target_protective_margin = cv2.dilate(
             target_mask,
-            cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3)),
+            cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5)),
             iterations=1
         )
         final_removal_mask = cv2.bitwise_and(
-            removal_candidate, cv2.bitwise_not(target_protective_margin)
+            shadow_dilated, cv2.bitwise_not(target_protective_margin)
         )
 
         # 6. Feathering / Edge smoothing
-        if self.feather_kernel > 1:
-            # Gaussian blur for soft transition
+        if self.feather_kernel > 1 and self.feather_kernel % 2 == 1:
             soft_mask = cv2.GaussianBlur(
                 final_removal_mask, (self.feather_kernel, self.feather_kernel), 0
             )
@@ -123,17 +96,44 @@ class DanceMaskProcessor:
     def process_sequence(
         self,
         all_humans_masks: List[np.ndarray],
-        target_masks: List[np.ndarray]
+        target_masks: List[np.ndarray],
+        temporal_window_radius: int = 2
     ) -> Tuple[List[np.ndarray], List[Dict]]:
         """
-        Processes a full sequence of masks with temporal continuity check.
+        Processes a full sequence of masks with multi-frame temporal continuity smoothing.
+        Eliminates single-frame mask dropouts and flickering during fast dancer turns.
         """
-        removal_masks = []
+        raw_removal_masks = []
         meta_list = []
 
+        # 1. Compute per-frame baseline removal masks
         for i, (all_m, tgt_m) in enumerate(zip(all_humans_masks, target_masks)):
             rem_m, meta = self.compute_removal_mask(all_m, tgt_m)
-            removal_masks.append(rem_m)
+            raw_removal_masks.append(rem_m)
             meta_list.append(meta)
 
-        return removal_masks, meta_list
+        # 2. Multi-frame Temporal Smoothing along time axis
+        num_frames = len(raw_removal_masks)
+        final_removal_masks = []
+
+        for t in range(num_frames):
+            t_min = max(0, t - temporal_window_radius)
+            t_max = min(num_frames, t + temporal_window_radius + 1)
+
+            # Temporal union across neighboring frames
+            temporal_accum = np.zeros_like(raw_removal_masks[0])
+            for k in range(t_min, t_max):
+                temporal_accum = np.maximum(temporal_accum, raw_removal_masks[k])
+
+            # Strict protection: Subtract protagonist with safety margin
+            target_protected = cv2.dilate(
+                target_masks[t],
+                cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5)),
+                iterations=1
+            )
+            smoothed_rem_mask = cv2.bitwise_and(
+                temporal_accum, cv2.bitwise_not(target_protected)
+            )
+            final_removal_masks.append(smoothed_rem_mask)
+
+        return final_removal_masks, meta_list
