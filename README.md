@@ -3,6 +3,7 @@
 > **Next-Gen AI-Native Video Creation & Smart Editing Suite**  
 > 定位为下一代类似 CapCut 的 AI 魔法视频剪辑套件，致力于提供影视级纯净单人直拍提取与智能背景重构能力。
 
+[![Project Page](https://img.shields.io/badge/Project%20Page-yenanfei.github.io%2Fmagicut-8b5cf6)](https://yenanfei.github.io/magicut/)
 [![GitHub](https://img.shields.io/badge/GitHub-yenanfei%2Fmagicut-blue?logo=github)](https://github.com/yenanfei/magicut)
 [![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12-blue?logo=python)](https://www.python.org/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.0%2B-ee4c2c?logo=pytorch)](https://pytorch.org/)
