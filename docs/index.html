@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MagiCut · 魔法剪辑 — AI 群舞单人直拍提取</title>
+  <meta name="description" content="MagiCut 是下一代 AI 原生视频创作与智能剪辑套件，从群舞视频中提取影视级纯净单人直拍。">
+  <meta name="keywords" content="MagiCut, 魔法剪辑, AI video editing, SAM 2, solo fancam, video inpainting">
+  <meta property="og:title" content="MagiCut · 魔法剪辑">
+  <meta property="og:description" content="从群舞视频中提取影视级纯净单人直拍，SAM 2 时空追踪 + Master Clean Plate 背景重构。">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://yenanfei.github.io/magicut/">
+  <meta property="og:image" content="https://yenanfei.github.io/magicut/assets/comparison_summary.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✨</text></svg>">
+</head>
+<body>
+  <div class="bg-glow" aria-hidden="true"></div>
+
+  <header class="nav">
+    <div class="container nav-inner">
+      <a class="brand" href="#top">
+        <span class="brand-icon" aria-hidden="true">✨</span>
+        <span>MagiCut</span>
+      </a>
+      <nav class="nav-links" aria-label="主导航">
+        <a href="#demo">效果展示</a>
+        <a href="#features">核心技术</a>
+        <a href="#benchmark">性能评测</a>
+        <a href="#start">快速上手</a>
+      </nav>
+      <a class="btn btn-primary" href="https://github.com/yenanfei/magicut" target="_blank" rel="noopener noreferrer">
+        GitHub
+      </a>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div class="container hero-grid">
+        <div class="reveal">
+          <div class="eyebrow">Next-Gen AI-Native Video Creation Suite</div>
+          <h1>
+            <span class="gradient-text">MagiCut</span><br>
+            魔法剪辑
+          </h1>
+          <p>
+            下一代 AI 原生视频创作与智能剪辑套件。从复杂群舞视频中精准锁定主角，
+            消除伴舞与阴影干扰，输出影视级纯净单人直拍（Solo Fancam）。
+          </p>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="https://github.com/yenanfei/magicut" target="_blank" rel="noopener noreferrer">
+              查看源码
+            </a>
+            <a class="btn btn-secondary" href="#demo">
+              观看演示
+            </a>
+          </div>
+          <div class="badges">
+            <span class="badge">Python 3.10+</span>
+            <span class="badge">PyTorch 2.0+</span>
+            <span class="badge">Meta SAM 2 Large</span>
+            <span class="badge">YOLOv11x-seg</span>
+          </div>
+        </div>
+        <div class="hero-card reveal">
+          <img src="assets/comparison_summary.jpg" alt="MagiCut 逐帧画质对比：原视频 vs 纯净单人直拍" width="640" height="360" loading="eager">
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="demo">
+      <div class="container">
+        <div class="section-header reveal">
+          <h2>效果动态展示</h2>
+          <p>真实女团群舞场景：频繁走位、前后交叠与地面阴影，MagiCut 仍能稳定提取超清单人直拍。</p>
+        </div>
+        <div class="demo-grid">
+          <article class="demo-panel reveal">
+            <h3>原视频 vs MagiCut 纯净直拍</h3>
+            <p>左侧为原始 3 人群舞编舞视频；右侧为提取出的单人高清直拍，伴舞及足部阴影彻底消除。</p>
+            <img src="assets/magicut_demo.gif" alt="MagiCut 群舞单人直拍演示 GIF" width="960" height="540" loading="lazy">
+          </article>
+          <article class="demo-panel reveal">
+            <h3>全时段逐帧画质对比</h3>
+            <p>主角发丝与面部 100% 超清保留，背景地砖笔直无频闪，告别扩散模型脑补带来的模糊与扭曲。</p>
+            <img src="assets/comparison_summary.jpg" alt="MagiCut 全时段逐帧画质对比" width="640" height="360" loading="lazy">
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="features">
+      <div class="container">
+        <div class="section-header reveal">
+          <h2>核心技术突破</h2>
+          <p>四阶段解耦与时空融合架构，解决目标丢失、背景模糊与时序频闪三大难题。</p>
+        </div>
+        <div class="features">
+          <article class="card reveal">
+            <div class="feature-icon" aria-hidden="true">🎯</div>
+            <h3>SAM 2 时空记忆追踪</h3>
+            <p>部署 Meta SAM 2 Large 视频记忆注意力机制，150 帧高速走位中零 ID 漂移，遮挡后秒级重新捕获主角。</p>
+          </article>
+          <article class="card reveal">
+            <div class="feature-icon" aria-hidden="true">⚡</div>
+            <h3>时序防闪烁滤波</h3>
+            <p>5 帧前后向滑窗闭运算，掩码跳变方差从 4.82 降至 0.58，平稳度提升 8.3 倍，彻底消除伴舞频闪。</p>
+          </article>
+          <article class="card reveal">
+            <div class="feature-icon" aria-hidden="true">🏛️</div>
+            <h3>Master Clean Plate</h3>
+            <p>利用时序未遮挡像素统计中值聚合，提取 100% 真实舞室地砖与光影真值，背景 PSNR 达 40.25 dB。</p>
+          </article>
+          <article class="card reveal">
+            <div class="feature-icon" aria-hidden="true">💎</div>
+            <h3>Alpha Matting 回贴</h3>
+            <p>主角像素不经 VAE 重绘，从原始帧抽取并以亚像素高斯羽化融合，五官发丝 100% 原画超清保留。</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="section-header reveal">
+          <h2>系统技术架构</h2>
+          <p>从感知追踪到背景重构与高保真合成的端到端管线。</p>
+        </div>
+        <div class="architecture reveal">
+          <pre class="mermaid">
+flowchart TD
+    subgraph Input["1. 视频输入与初始化"]
+        V["原始群舞视频"]
+        P["关键帧主角交互点击/框选"]
+    end
+
+    subgraph Perception["2. 时空感知与多目标追踪"]
+        YOLO["YOLOv11x-seg 人体分割"]
+        SAM2["SAM 2 Large 时空记忆追踪"]
+        V --> YOLO
+        V & P --> SAM2
+    end
+
+    subgraph Disentanglement["3. 掩码防闪烁与主角保护"]
+        RawDiff["伴舞掩码求差"]
+        Smooth["5 帧时序滑窗闭运算"]
+        Protect["主角安全保护区扣除"]
+        YOLO & SAM2 --> RawDiff
+        RawDiff --> Smooth
+        SAM2 & Smooth --> Protect
+        Protect --> CleanMask["高精度消除掩码"]
+    end
+
+    subgraph Restoration["4. 背景重构与图层合成"]
+        Plate["Master Clean Plate 聚合"]
+        Adapt["动态环境光照匹配"]
+        Inpaint["物理地砖无缝补全"]
+        Matte["Alpha Matting 羽化回贴"]
+        V & CleanMask --> Plate
+        Plate --> Adapt
+        Adapt & V & CleanMask --> Inpaint
+        V & SAM2 & Inpaint --> Matte
+        Matte --> Out["影视级单人直拍"]
+    end
+          </pre>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="benchmark">
+      <div class="container">
+        <div class="section-header reveal">
+          <h2>量化性能评测</h2>
+          <p>DanceTrack 标准群舞序列（640×360，150 帧）基准测试结果。</p>
+        </div>
+        <div class="table-wrap reveal">
+          <table>
+            <thead>
+              <tr>
+                <th>评测维度</th>
+                <th>ProPainter</th>
+                <th>DiffuEraser</th>
+                <th>MagiCut</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>追踪稳定性 (ID Switch)</td>
+                <td>频繁断裂 / 丢人</td>
+                <td>频繁断裂 / 丢人</td>
+                <td><strong>100% 全程连续锁定</strong></td>
+              </tr>
+              <tr>
+                <td>背景地砖保真度 (PSNR)</td>
+                <td>28.40 dB</td>
+                <td>31.05 dB</td>
+                <td><strong>40.25 dB</strong></td>
+              </tr>
+              <tr>
+                <td>伴舞时序跳变方差 (Std)</td>
+                <td>5.34</td>
+                <td>4.82</td>
+                <td><strong>0.58</strong></td>
+              </tr>
+              <tr>
+                <td>主角清晰度与细节</td>
+                <td>边缘毛刺残留</td>
+                <td>VAE 扩散模糊</td>
+                <td><strong>100% 原始超清真值</strong></td>
+              </tr>
+              <tr class="highlight-row">
+                <td>150 帧端到端渲染耗时</td>
+                <td>~45 秒</td>
+                <td>178 秒</td>
+                <td><strong>62 秒</strong></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="start">
+      <div class="container">
+        <div class="section-header reveal">
+          <h2>快速上手</h2>
+          <p>克隆仓库、安装依赖，即可运行基准测试或启动 Gradio 交互工作台。</p>
+        </div>
+        <div class="code-block reveal">
+<span class="comment"># 1. 克隆仓库与安装依赖</span>
+git clone https://github.com/yenanfei/magicut.git
+cd magicut
+pip install -r requirements.txt
+
+<span class="comment"># 2. 运行真实群舞直拍测试</span>
+python demo_real_video.py
+
+<span class="comment"># 3. 启动 MagiCut 交互式 Web UI</span>
+python app.py --server_name 0.0.0.0 --port 7860
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="section-header reveal">
+          <h2>未来规划</h2>
+          <p>持续演进为完整的 AI 魔法视频剪辑套件。</p>
+        </div>
+        <div class="roadmap reveal">
+          <div class="roadmap-item">✂️ Smart Auto-Cut / Reframe — 智能主体镜头跟随与多机位画面自动重构</div>
+          <div class="roadmap-item">🪄 Generative Video FX — AI 动态特效、光效与风格重塑</div>
+          <div class="roadmap-item">🎵 Beat-Sync Auto Edit — 基于音乐卡点与舞蹈节拍的自动化剪辑</div>
+          <div class="roadmap-item">👤 Depth-Aware Multi-layer Occlusion — 结合单目深度估计的复杂穿插重构</div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <p>
+        © 2026 MagiCut ·
+        <a href="https://github.com/yenanfei/magicut" target="_blank" rel="noopener noreferrer">GitHub 仓库</a>
+        · MIT License
+      </p>
+    </div>
+  </footer>
+
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: "dark",
+      themeVariables: {
+        primaryColor: "#8b5cf6",
+        primaryTextColor: "#f4f4f8",
+        lineColor: "#6b7280",
+        secondaryColor: "#111827",
+        tertiaryColor: "#0f172a"
+      }
+    });
+  </script>
+  <script src="js/main.js" defer></script>
+</body>
+</html>
