@@ -156,6 +156,12 @@ python app.py --server_name 0.0.0.0 --port 7860
 ```
 浏览器访问 `http://localhost:7860` 即可在可视化界面中点击选择主角并一键提取纯净单人直拍。
 
+### 4. 项目主页 (GitHub Pages)
+
+在线访问：**https://yenanfei.github.io/magicut/**
+
+> 首次发布需在仓库 **Settings → Pages** 中，将 Source 设置为 `gh-pages` 分支、`/ (root)` 目录。之后每次推送到 `main` 分支会自动更新主页。
+
 ---
 
 ## 🔮 未来规划 (Roadmap)
