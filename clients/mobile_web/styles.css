@@ -1,0 +1,236 @@
+:root {
+  --ink: #14212b;
+  --muted: #4d5d6a;
+  --paper: #eef3f6;
+  --mist: #d5e4ec;
+  --accent: #e23d2b;
+  --accent-deep: #b92c1e;
+  --panel: rgba(255, 255, 255, 0.72);
+  --line: rgba(20, 33, 43, 0.12);
+  --shadow: 0 18px 50px rgba(20, 33, 43, 0.12);
+  --radius: 18px;
+  --font-display: "Outfit", sans-serif;
+  --font-body: "Source Sans 3", sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  min-height: 100%;
+  font-family: var(--font-body);
+  color: var(--ink);
+  background: var(--paper);
+}
+
+.atmosphere {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(900px 480px at 12% -10%, #9ec9d8 0%, transparent 55%),
+    radial-gradient(700px 420px at 100% 8%, #f3b39a 0%, transparent 50%),
+    linear-gradient(165deg, #f7fafc 0%, #e7eef3 48%, #d9e7ee 100%);
+  animation: drift 14s ease-in-out infinite alternate;
+}
+
+@keyframes drift {
+  from { filter: saturate(1) brightness(1); transform: scale(1); }
+  to { filter: saturate(1.08) brightness(1.03); transform: scale(1.03); }
+}
+
+.shell {
+  width: min(440px, 100%);
+  margin: 0 auto;
+  padding: 28px 18px 48px;
+}
+
+.brand-hero {
+  margin-bottom: 22px;
+  animation: rise 0.7s ease both;
+}
+
+.brand {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(2.6rem, 12vw, 3.4rem);
+  letter-spacing: -0.04em;
+  line-height: 0.95;
+}
+
+.brand-hero h1 {
+  margin: 14px 0 8px;
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.lede {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.45;
+  max-width: 34ch;
+}
+
+.panel {
+  background: var(--panel);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: var(--shadow);
+  animation: rise 0.55s ease both;
+}
+
+.panel + .panel { margin-top: 14px; }
+.hidden { display: none !important; }
+
+.file-drop {
+  display: grid;
+  gap: 6px;
+  place-items: center;
+  min-height: 132px;
+  border: 1.5px dashed rgba(20, 33, 43, 0.28);
+  border-radius: 14px;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s, transform 0.2s;
+}
+
+.file-drop:hover {
+  border-color: var(--accent);
+  background: rgba(226, 61, 43, 0.05);
+  transform: translateY(-1px);
+}
+
+.file-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+.file-hint { color: var(--muted); font-size: 0.92rem; }
+
+.row {
+  display: flex;
+  gap: 10px;
+  align-items: end;
+  margin-bottom: 12px;
+}
+
+.field {
+  display: grid;
+  gap: 6px;
+  flex: 1;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.field input {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font: inherit;
+  color: var(--ink);
+  background: #fff;
+}
+
+.canvas-wrap {
+  position: relative;
+  width: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #0f1720;
+  aspect-ratio: 16 / 9;
+}
+
+.canvas-wrap img,
+.canvas-wrap canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.canvas-wrap canvas { cursor: crosshair; }
+
+.actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+button, .primary, .ghost {
+  appearance: none;
+  border: 0;
+  border-radius: 12px;
+  padding: 12px 16px;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  text-align: center;
+}
+
+.primary {
+  background: var(--accent);
+  color: #fff;
+  flex: 1;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.primary:hover { background: var(--accent-deep); transform: translateY(-1px); }
+.primary:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+.ghost {
+  background: transparent;
+  color: var(--ink);
+  border: 1px solid var(--line);
+}
+
+.status, .stage {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+  min-height: 1.2em;
+}
+
+.stage {
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-weight: 600;
+}
+
+.bar {
+  margin-top: 12px;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(20, 33, 43, 0.08);
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #e23d2b, #f08a4b);
+  transition: width 0.35s ease;
+}
+
+#result-video {
+  width: 100%;
+  border-radius: 12px;
+  background: #0f1720;
+  display: block;
+}
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (min-width: 760px) {
+  .shell { padding-top: 48px; }
+}

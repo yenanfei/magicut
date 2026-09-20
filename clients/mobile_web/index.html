@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>MagiCut</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;700;800&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="atmosphere" aria-hidden="true"></div>
+  <main class="shell">
+    <header class="brand-hero">
+      <p class="brand">MagiCut</p>
+      <h1>把群舞变成纯净单人直拍</h1>
+      <p class="lede">上传视频，点选主角，云端 GPU 完成追踪与背景重构。</p>
+    </header>
+
+    <section class="panel" id="step-upload">
+      <label class="file-drop" for="video-input">
+        <input id="video-input" type="file" accept="video/mp4,video/quicktime,video/*" hidden />
+        <span class="file-title">选择舞蹈视频</span>
+        <span class="file-hint">MP4 / MOV · 原型建议短片段</span>
+      </label>
+      <p class="status" id="upload-status"></p>
+    </section>
+
+    <section class="panel hidden" id="step-select">
+      <div class="row">
+        <label class="field">
+          关键帧
+          <input id="frame-idx" type="number" min="0" value="0" />
+        </label>
+        <button type="button" class="ghost" id="load-frame">加载帧</button>
+      </div>
+      <div class="canvas-wrap">
+        <img id="keyframe" alt="关键帧预览" />
+        <canvas id="overlay"></canvas>
+      </div>
+      <p class="status" id="point-status">点击画面选择主角位置</p>
+      <div class="actions">
+        <button type="button" class="ghost" id="clear-points">清除点</button>
+        <button type="button" class="primary" id="run-job" disabled>开始生成</button>
+      </div>
+    </section>
+
+    <section class="panel hidden" id="step-progress">
+      <p class="stage" id="stage-text">排队中…</p>
+      <div class="bar"><div class="bar-fill" id="bar-fill"></div></div>
+      <p class="status" id="progress-status"></p>
+    </section>
+
+    <section class="panel hidden" id="step-result">
+      <video id="result-video" controls playsinline></video>
+      <div class="actions">
+        <a class="primary" id="download-link" download="magicut_result.mp4">下载结果</a>
+        <button type="button" class="ghost" id="reset">再做一条</button>
+      </div>
+      <p class="status" id="result-meta"></p>
+    </section>
+  </main>
+  <script src="./app.js"></script>
+</body>
+</html>

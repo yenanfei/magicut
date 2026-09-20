@@ -20,3 +20,11 @@ gradio>=4.30.0
 matplotlib>=3.7.0
 tqdm>=4.65.0
 pyyaml>=6.0.1
+
+# Cloud API (mobile / App Store backend prototype)
+fastapi>=0.110.0
+uvicorn[standard]>=0.27.0
+python-multipart>=0.0.9
+httpx>=0.27.0
+aiofiles>=23.2.1
+pydantic>=2.6.0

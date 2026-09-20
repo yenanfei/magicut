@@ -156,7 +156,20 @@ python app.py --server_name 0.0.0.0 --port 7860
 ```
 浏览器访问 `http://localhost:7860` 即可在可视化界面中点击选择主角并一键提取纯净单人直拍。
 
-### 4. 项目主页 (GitHub Pages)
+### 4. 云端 API + 移动端原型（App Store 路径）
+
+```bash
+MAGICUT_PIPELINE_MODE=mock ./scripts/run_api.sh
+```
+
+- 手机网页原型：`http://localhost:8080/app/`
+- API 文档：`http://localhost:8080/docs`
+- iOS SwiftUI 骨架：`clients/ios/`
+- 部署说明：[`docs/APP_PROTOTYPE.md`](docs/APP_PROTOTYPE.md)
+
+无 GPU 时自动使用 mock 管线，可完整走通「上传 → 点选 → 排队 → 下载」；在 SSH GPU 服务器上设 `MAGICUT_PIPELINE_MODE=real` 即可切换真实 MagiCut 推理。
+
+### 5. 项目主页 (GitHub Pages)
 
 在线访问：**https://yenanfei.github.io/magicut/**
 
@@ -166,6 +179,7 @@ python app.py --server_name 0.0.0.0 --port 7860
 
 ## 🔮 未来规划 (Roadmap)
 
+- [ ] 📱 **Mobile / App Store Client**：iOS 壳 + 云端 GPU API（见 `docs/APP_PROTOTYPE.md` 原型）
 - [ ] ✂️ **Smart Auto-Cut / Reframe**：智能主体镜头跟随与多机位画面自动重构
 - [ ] 🪄 **Generative Video FX**：AI 动态特效、光效与风格重塑
 - [ ] 🎵 **Beat-Sync Auto Edit**：基于音乐卡点与舞蹈节拍的自动化剪辑
