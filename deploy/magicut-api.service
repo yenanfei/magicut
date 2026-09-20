@@ -1,0 +1,16 @@
+[Unit]
+Description=MagiCut cloud API (App Store / mobile backend)
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/opt/magicut
+EnvironmentFile=-/opt/magicut/.env
+ExecStart=/opt/magicut/.venv/bin/python -m uvicorn server.main:app --host ${MAGICUT_API_HOST:-0.0.0.0} --port ${MAGICUT_API_PORT:-8080}
+Restart=on-failure
+RestartSec=5
+LimitNOFILE=65535
+
+[Install]
+WantedBy=multi-user.target

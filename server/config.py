@@ -19,6 +19,7 @@ API_PORT = int(os.environ.get("MAGICUT_API_PORT", "8080"))
 API_TOKEN = os.environ.get("MAGICUT_API_TOKEN", "")  # empty = open for local prototype
 MAX_UPLOAD_MB = int(os.environ.get("MAGICUT_MAX_UPLOAD_MB", "200"))
 DEFAULT_MAX_FRAMES = int(os.environ.get("MAGICUT_DEFAULT_MAX_FRAMES", "60"))
+JOB_TTL_HOURS = float(os.environ.get("MAGICUT_JOB_TTL_HOURS", "24"))
 CORS_ORIGINS = [
     o.strip()
     for o in os.environ.get("MAGICUT_CORS_ORIGINS", "*").split(",")

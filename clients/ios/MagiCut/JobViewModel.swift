@@ -18,6 +18,21 @@ final class JobViewModel: ObservableObject {
     private var jobId: String?
     private var pollTask: Task<Void, Never>?
 
+    func loadDemo() async {
+        isBusy = true
+        defer { isBusy = false }
+        do {
+            statusText = "准备演示片段…"
+            let created = try await api.createDemoJob()
+            jobId = created.job_id
+            points = []
+            statusText = "演示就绪 · \(created.job_id)"
+            try await reloadKeyframe()
+        } catch {
+            statusText = error.localizedDescription
+        }
+    }
+
     func upload(videoURL: URL) async {
         isBusy = true
         defer { isBusy = false }

@@ -66,6 +66,15 @@ final class MagiCutAPIClient {
         }
     }
 
+    func createDemoJob() async throws -> JobCreateResponse {
+        var request = URLRequest(url: APIConfig.baseURL.appendingPathComponent("/api/v1/jobs/demo"))
+        request.httpMethod = "POST"
+        authorized(&request)
+        let (data, response) = try await session.data(for: request)
+        try validate(response, data: data)
+        return try JSONDecoder().decode(JobCreateResponse.self, from: data)
+    }
+
     func createJob(videoURL: URL) async throws -> JobCreateResponse {
         var request = URLRequest(url: APIConfig.baseURL.appendingPathComponent("/api/v1/jobs"))
         request.httpMethod = "POST"

@@ -6,93 +6,117 @@ import UniformTypeIdentifiers
 struct ContentView: View {
     @EnvironmentObject private var model: JobViewModel
     @State private var pickerItem: PhotosPickerItem?
+    @AppStorage("magicut_api_base") private var apiBase = "http://127.0.0.1:8080"
+    @AppStorage("magicut_api_token") private var apiToken = ""
 
     var body: some View {
-        ZStack {
-            LinearGradient(
-                colors: [Color(red: 0.93, green: 0.96, blue: 0.98), Color(red: 0.84, green: 0.90, blue: 0.93)],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            .ignoresSafeArea()
+        NavigationStack {
+            ZStack {
+                LinearGradient(
+                    colors: [Color(red: 0.93, green: 0.96, blue: 0.98), Color(red: 0.84, green: 0.90, blue: 0.93)],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+                .ignoresSafeArea()
 
-            ScrollView {
-                VStack(alignment: .leading, spacing: 18) {
-                    Text("MagiCut")
-                        .font(.custom("Avenir Next", size: 44).weight(.heavy))
-                        .tracking(-1)
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 18) {
+                        Text("MagiCut")
+                            .font(.custom("Avenir Next", size: 44).weight(.heavy))
+                            .tracking(-1)
 
-                    Text("把群舞变成纯净单人直拍")
-                        .font(.title3.weight(.semibold))
+                        Text("把群舞变成纯净单人直拍")
+                            .font(.title3.weight(.semibold))
 
-                    Text("上传 → 点选主角 → 云端 GPU 生成")
-                        .foregroundStyle(.secondary)
+                        Text("上传 → 点选主角 → 云端 GPU 生成")
+                            .foregroundStyle(.secondary)
 
-                    PhotosPicker(selection: $pickerItem, matching: .videos) {
-                        Text("从相册选择视频")
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color(red: 0.89, green: 0.24, blue: 0.17))
-                            .foregroundStyle(.white)
-                            .clipShape(RoundedRectangle(cornerRadius: 14))
-                    }
-
-                    if let image = model.keyframe {
-                        KeyframeTapView(image: image, points: $model.points) { point, size, imageSize in
-                            model.addPoint(point, in: size, imageSize: imageSize)
+                        PhotosPicker(selection: $pickerItem, matching: .videos) {
+                            Text("从相册选择视频")
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(Color(red: 0.89, green: 0.24, blue: 0.17))
+                                .foregroundStyle(.white)
+                                .clipShape(RoundedRectangle(cornerRadius: 14))
                         }
-                        .frame(height: 240)
-                        .clipShape(RoundedRectangle(cornerRadius: 14))
 
-                        HStack {
-                            Stepper("关键帧 \(model.frameIndex)", value: $model.frameIndex, in: 0...500)
-                            Button("加载") {
-                                Task {
-                                    try? await model.reloadKeyframe()
-                                    model.clearPoints()
+                        Button("试用演示片段") {
+                            Task { await model.loadDemo() }
+                        }
+                        .buttonStyle(.bordered)
+
+                        if let image = model.keyframe {
+                            KeyframeTapView(image: image, points: $model.points) { point, size, imageSize in
+                                model.addPoint(point, in: size, imageSize: imageSize)
+                            }
+                            .frame(height: 240)
+                            .clipShape(RoundedRectangle(cornerRadius: 14))
+
+                            HStack {
+                                Stepper("关键帧 \(model.frameIndex)", value: $model.frameIndex, in: 0...500)
+                                Button("加载") {
+                                    Task {
+                                        try? await model.reloadKeyframe()
+                                        model.clearPoints()
+                                    }
                                 }
                             }
-                        }
 
-                        HStack {
-                            Button("清除点") { model.clearPoints() }
-                            Button("开始生成") {
-                                Task { await model.startProcessing() }
+                            HStack {
+                                Button("清除点") { model.clearPoints() }
+                                Button("开始生成") {
+                                    Task { await model.startProcessing() }
+                                }
+                                .disabled(model.points.isEmpty || model.isBusy)
+                                .buttonStyle(.borderedProminent)
+                                .tint(Color(red: 0.89, green: 0.24, blue: 0.17))
                             }
-                            .disabled(model.points.isEmpty || model.isBusy)
-                            .buttonStyle(.borderedProminent)
-                            .tint(Color(red: 0.89, green: 0.24, blue: 0.17))
                         }
-                    }
 
-                    if model.isBusy || model.progress > 0 {
-                        ProgressView(value: model.progress)
-                        Text(model.stage.isEmpty ? model.statusText : model.stage)
+                        if model.isBusy || model.progress > 0 {
+                            ProgressView(value: model.progress)
+                            Text(model.stage.isEmpty ? model.statusText : model.stage)
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                        }
+
+                        if let player = model.resultPlayer {
+                            VideoPlayer(player: player)
+                                .frame(height: 240)
+                                .clipShape(RoundedRectangle(cornerRadius: 14))
+                        }
+
+                        Text(model.statusText)
                             .font(.footnote)
                             .foregroundStyle(.secondary)
                     }
-
-                    if let player = model.resultPlayer {
-                        VideoPlayer(player: player)
-                            .frame(height: 240)
-                            .clipShape(RoundedRectangle(cornerRadius: 14))
+                    .padding(20)
+                }
+            }
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    NavigationLink("设置") { SettingsView() }
+                }
+            }
+            .onAppear { applyAPIConfig() }
+            .onChange(of: apiBase) { _, _ in applyAPIConfig() }
+            .onChange(of: apiToken) { _, _ in applyAPIConfig() }
+            .onChange(of: pickerItem) { _, item in
+                guard let item else { return }
+                Task {
+                    if let movie = try? await item.loadTransferable(type: VideoFile.self) {
+                        await model.upload(videoURL: movie.url)
                     }
+                }
+            }
+        }
+    }
 
-                    Text(model.statusText)
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                }
-                .padding(20)
-            }
+    private func applyAPIConfig() {
+        if let url = URL(string: apiBase.trimmingCharacters(in: .whitespacesAndNewlines)) {
+            APIConfig.baseURL = url
         }
-        .onChange(of: pickerItem) { _, item in
-            guard let item else { return }
-            Task {
-                if let movie = try? await item.loadTransferable(type: VideoFile.self) {
-                    await model.upload(videoURL: movie.url)
-                }
-            }
-        }
+        APIConfig.token = apiToken.isEmpty ? nil : apiToken
     }
 }
 

@@ -112,6 +112,10 @@ flowchart TD
 ```
 magicut/
 ├── app.py                     # MagiCut Gradio 交互式 Web 前端工作台
+├── server/                    # 云端 FastAPI（移动端 / App Store 后端原型）
+├── clients/
+│   ├── mobile_web/            # 可演示的手机网页客户端
+│   └── ios/                   # SwiftUI iOS 客户端骨架
 ├── demo_real_video.py         # 真实群舞基准测试与对比生成脚本
 ├── test_pipeline.py           # 自动化测试与验证脚本
 ├── requirements.txt           # Python 依赖清单

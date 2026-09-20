@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Optional
+from typing import List, Optional
 from uuid import uuid4
 
+import cv2
+import numpy as np
 from fastapi import Depends, FastAPI, File, Header, HTTPException, Query, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, Response
@@ -13,26 +15,26 @@ from fastapi.staticfiles import StaticFiles
 
 from . import __version__
 from .config import (
+    API_TOKEN,
     CORS_ORIGINS,
+    JOB_TTL_HOURS,
     MAX_UPLOAD_MB,
     ROOT_DIR,
     UPLOAD_DIR,
-    API_TOKEN,
     ensure_dirs,
 )
 from .job_store import JobStore, upload_destination
 from .pipeline_runner import cuda_available, extract_keyframe_jpeg, resolve_mode
 from .schemas import (
+    CleanupResponse,
     HealthResponse,
     JobCreateResponse,
+    JobListResponse,
     JobStatus,
     JobStatusResponse,
     ProcessRequest,
 )
 from .worker import JobWorker
-
-import cv2
-import numpy as np
 
 
 def _write_demo_clip(dest: Path) -> None:
@@ -57,6 +59,24 @@ def _write_demo_clip(dest: Path) -> None:
         writer.write(frame)
     writer.release()
 
+
+def _to_status(job: dict) -> JobStatusResponse:
+    return JobStatusResponse(
+        job_id=job["job_id"],
+        status=JobStatus(job["status"]),
+        progress=float(job.get("progress") or 0),
+        stage=job.get("stage") or "",
+        filename=job.get("filename"),
+        error=job.get("error"),
+        result_ready=job.get("status") == JobStatus.completed.value
+        and Path(job.get("result_path", "")).exists(),
+        mode=job.get("mode"),
+        elapsed_sec=job.get("elapsed_sec"),
+        total_frames=job.get("total_frames"),
+        created_at=job.get("created_at"),
+    )
+
+
 ensure_dirs()
 store = JobStore()
 worker = JobWorker(store)
@@ -76,10 +96,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-MOBILE_WEB = ROOT_DIR / "clients" / "mobile_web"
-if MOBILE_WEB.exists():
-    app.mount("/app", StaticFiles(directory=str(MOBILE_WEB), html=True), name="mobile_web")
-
 
 def require_token(authorization: Optional[str] = Header(default=None)) -> None:
     if not API_TOKEN:
@@ -88,13 +104,27 @@ def require_token(authorization: Optional[str] = Header(default=None)) -> None:
         raise HTTPException(status_code=401, detail="Invalid or missing API token")
 
 
+@app.on_event("startup")
+def _startup_cleanup() -> None:
+    removed = store.cleanup_expired()
+    if removed:
+        print(f"[MagiCut] cleaned {removed} expired jobs")
+
+
 @app.get("/health", response_model=HealthResponse)
 def health() -> HealthResponse:
     return HealthResponse(
         version=__version__,
         pipeline_mode=resolve_mode(),
         cuda_available=cuda_available(),
+        auth_required=bool(API_TOKEN),
     )
+
+
+@app.get("/api/v1/jobs", response_model=JobListResponse, dependencies=[Depends(require_token)])
+def list_jobs(limit: int = Query(50, ge=1, le=200)) -> JobListResponse:
+    jobs = [_to_status(j) for j in store.list_jobs(limit=limit)]
+    return JobListResponse(jobs=jobs, count=len(jobs))
 
 
 @app.post("/api/v1/jobs", response_model=JobCreateResponse, dependencies=[Depends(require_token)])
@@ -157,24 +187,34 @@ def create_demo_job() -> JobCreateResponse:
     )
 
 
+@app.post(
+    "/api/v1/jobs/cleanup",
+    response_model=CleanupResponse,
+    dependencies=[Depends(require_token)],
+)
+def cleanup_jobs(ttl_hours: Optional[float] = Query(None, ge=0)) -> CleanupResponse:
+    hours = JOB_TTL_HOURS if ttl_hours is None else float(ttl_hours)
+    removed = store.cleanup_expired(ttl_hours=hours)
+    return CleanupResponse(removed=removed, ttl_hours=hours)
+
+
 @app.get("/api/v1/jobs/{job_id}", response_model=JobStatusResponse, dependencies=[Depends(require_token)])
 def get_job(job_id: str) -> JobStatusResponse:
     job = store.get(job_id)
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
-    return JobStatusResponse(
-        job_id=job_id,
-        status=JobStatus(job["status"]),
-        progress=float(job.get("progress") or 0),
-        stage=job.get("stage") or "",
-        filename=job.get("filename"),
-        error=job.get("error"),
-        result_ready=job.get("status") == JobStatus.completed.value
-        and Path(job.get("result_path", "")).exists(),
-        mode=job.get("mode"),
-        elapsed_sec=job.get("elapsed_sec"),
-        total_frames=job.get("total_frames"),
-    )
+    return _to_status(job)
+
+
+@app.delete("/api/v1/jobs/{job_id}", dependencies=[Depends(require_token)])
+def delete_job(job_id: str):
+    job = store.get(job_id)
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    if job["status"] in {JobStatus.queued.value, JobStatus.processing.value}:
+        raise HTTPException(status_code=409, detail="Cannot delete a running job")
+    store.delete(job_id)
+    return {"ok": True, "job_id": job_id}
 
 
 @app.get("/api/v1/jobs/{job_id}/keyframe", dependencies=[Depends(require_token)])
@@ -220,14 +260,7 @@ def process_job(job_id: str, body: ProcessRequest) -> JobStatusResponse:
     )
     worker.enqueue(job_id)
     job = store.get(job_id)
-    return JobStatusResponse(
-        job_id=job_id,
-        status=JobStatus(job["status"]),
-        progress=float(job.get("progress") or 0),
-        stage=job.get("stage") or "",
-        filename=job.get("filename"),
-        result_ready=False,
-    )
+    return _to_status(job)
 
 
 @app.get("/api/v1/jobs/{job_id}/result", dependencies=[Depends(require_token)])
@@ -255,3 +288,9 @@ def root():
         "mobile_web": "/app/",
         "health": "/health",
     }
+
+
+# Static mobile web last so it does not shadow API routes
+MOBILE_WEB = ROOT_DIR / "clients" / "mobile_web"
+if MOBILE_WEB.exists():
+    app.mount("/app", StaticFiles(directory=str(MOBILE_WEB), html=True), name="mobile_web")

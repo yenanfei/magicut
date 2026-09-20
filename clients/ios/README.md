@@ -1,29 +1,27 @@
-# MagiCut iOS Client (Prototype)
+# MagiCut iOS Client
 
-SwiftUI 客户端骨架，对接云端 MagiCut API（SSH GPU 服务器上的 FastAPI）。
+SwiftUI 客户端，对接云端 MagiCut API（部署在 SSH GPU 服务器）。
 
-## 在 Xcode 中打开
-
-1. 新建 iOS App 工程（SwiftUI, iOS 17+），Bundle ID 自定，例如 `com.yourname.magicut`
-2. 将本目录下的 Swift 文件加入工程：
-   - `MagiCutApp.swift`
-   - `ContentView.swift`
-   - `JobViewModel.swift`
-   - `APIClient.swift`
-3. 在 `APIClient.swift` 的 `APIConfig.baseURL` 填入你的 HTTPS API 地址
-4. 若服务器设置了 `MAGICUT_API_TOKEN`，在 Scheme → Environment Variables 同步配置
-5. 真机调试时需允许非本机 ATS，或使用正式 TLS 域名
-
-## App Store 路径
-
-- 本客户端只做上传 / 点选 / 进度 / 预览，重推理留在 GPU 服务器
-- 上架前补充：隐私政策、账号体系（可选）、后台任务提示、内容合规文案
-- ATS：生产环境必须 HTTPS（可用 Caddy/Nginx 反代 GPU 主机）
-
-## 本地联调
+## 打开工程
 
 ```bash
-# GPU / 开发机
-MAGICUT_PIPELINE_MODE=mock uvicorn server.main:app --host 0.0.0.0 --port 8080
-# 手机访问同一局域网 IP，或用 ngrok / Cloudflare Tunnel
+open clients/ios/MagiCut.xcodeproj
 ```
+
+或用 [XcodeGen](https://github.com/yonaskolb/XcodeGen)：`cd clients/ios && xcodegen generate`
+
+1. 在 Signing & Capabilities 填写你的 Apple Team
+2. 改 Bundle ID（默认 `com.magicut.app`）
+3. 设置 → 填入 HTTPS API 地址与 Token
+4. 真机运行；本地联调可用 Mac 局域网 IP + `NSAllowsLocalNetworking`
+
+## 功能
+
+- 相册选视频 / 演示任务（`POST /api/v1/jobs/demo`）
+- 关键帧点选主角
+- 异步进度轮询与结果播放
+- 设置页保存 API Base + Bearer Token
+
+## App Store
+
+见 `docs/APP_STORE_CHECKLIST.md`。上架前必须把 API 换成正式 HTTPS，并补隐私政策链接。

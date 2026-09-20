@@ -87,6 +87,16 @@ html, body {
 .panel + .panel { margin-top: 14px; }
 .hidden { display: none !important; }
 
+.settings summary {
+  cursor: pointer;
+  font-family: var(--font-display);
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.settings .field { margin-bottom: 10px; }
+.settings .ghost { width: 100%; }
+
 .file-drop {
   display: grid;
   gap: 6px;

@@ -49,6 +49,17 @@ class JobStatusResponse(BaseModel):
     mode: Optional[str] = None
     elapsed_sec: Optional[float] = None
     total_frames: Optional[int] = None
+    created_at: Optional[str] = None
+
+
+class JobListResponse(BaseModel):
+    jobs: List[JobStatusResponse]
+    count: int
+
+
+class CleanupResponse(BaseModel):
+    removed: int
+    ttl_hours: float
 
 
 class HealthResponse(BaseModel):
@@ -57,3 +68,4 @@ class HealthResponse(BaseModel):
     version: str
     pipeline_mode: str
     cuda_available: bool
+    auth_required: bool = False

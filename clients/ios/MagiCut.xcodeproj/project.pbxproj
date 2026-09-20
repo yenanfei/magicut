@@ -1,0 +1,245 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		036F34BC79744FEC8F53BF08 /* MagiCutApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8FBEFCB4D6B446EAB40C516 /* MagiCutApp.swift */; };
+		FE92F32535BF4A62813A46D3 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D73F1F71EAC34681A65DE16C /* ContentView.swift */; };
+		7FF252C3F08748A09989987C /* JobViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4A9196217C24DC5B29BC112 /* JobViewModel.swift */; };
+		51906EE3DA4B4A459C03BE53 /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 679DC80126534611A467750B /* APIClient.swift */; };
+		FB13C7C7E67745C5B82DD042 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0409280A5D8F412A9532EACE /* SettingsView.swift */; };
+		191DFF855AC547FB97FF3B24 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 46D16119A2534F4DA2307A13 /* Assets.xcassets */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		F8FBEFCB4D6B446EAB40C516 /* MagiCutApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MagiCutApp.swift; sourceTree = "<group>"; };
+		D73F1F71EAC34681A65DE16C /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		D4A9196217C24DC5B29BC112 /* JobViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JobViewModel.swift; sourceTree = "<group>"; };
+		679DC80126534611A467750B /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
+		0409280A5D8F412A9532EACE /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		C9510ED6999049AAA763A418 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		46D16119A2534F4DA2307A13 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		D93C12256F7C4EEF8FD5EF1E /* MagiCut.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MagiCut.app; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		A6A971857B3C4765BF186DC0 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		8B044BA9033A4F16AF097397g /* Root */ = {
+			isa = PBXGroup;
+			children = (
+				5DDDEC256CEE47B98105885B /* MagiCut */,
+				D3C23B7068894C2EA841B736 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		5DDDEC256CEE47B98105885B /* MagiCut */ = {
+			isa = PBXGroup;
+			children = (
+				F8FBEFCB4D6B446EAB40C516 /* MagiCutApp.swift */,
+				D73F1F71EAC34681A65DE16C /* ContentView.swift */,
+				D4A9196217C24DC5B29BC112 /* JobViewModel.swift */,
+				679DC80126534611A467750B /* APIClient.swift */,
+				0409280A5D8F412A9532EACE /* SettingsView.swift */,
+				C9510ED6999049AAA763A418 /* Info.plist */,
+				46D16119A2534F4DA2307A13 /* Assets.xcassets */,
+			);
+			path = MagiCut;
+			sourceTree = "<group>";
+		};
+		D3C23B7068894C2EA841B736 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				D93C12256F7C4EEF8FD5EF1E /* MagiCut.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		DDECAF5694B54D7E8EE09E50 /* MagiCut */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 9373550C0F2B49069A57108E /* Build configuration list for PBXNativeTarget "MagiCut" */;
+			buildPhases = (
+				232FAB67A2F74928A03810FE /* Sources */,
+				A6A971857B3C4765BF186DC0 /* Frameworks */,
+				1A1CF70AE7874350816D0F9E /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = MagiCut;
+			productName = MagiCut;
+			productReference = D93C12256F7C4EEF8FD5EF1E /* MagiCut.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		8B044BA9033A4F16AF097397 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1500;
+				LastUpgradeCheck = 1500;
+			};
+			buildConfigurationList = 95519F787C8646D49A5D03AB /* Build configuration list for PBXProject "MagiCut" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = "zh-Hans";
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+				"zh-Hans",
+			);
+			mainGroup = 8B044BA9033A4F16AF097397g /* Root */;
+			productRefGroup = D3C23B7068894C2EA841B736 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				DDECAF5694B54D7E8EE09E50 /* MagiCut */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		1A1CF70AE7874350816D0F9E /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				191DFF855AC547FB97FF3B24 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		232FAB67A2F74928A03810FE /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+\t\t\t\t036F34BC79744FEC8F53BF08 /* MagiCutApp.swift in Sources */,
+\t\t\t\tFE92F32535BF4A62813A46D3 /* ContentView.swift in Sources */,
+\t\t\t\t7FF252C3F08748A09989987C /* JobViewModel.swift in Sources */,
+\t\t\t\t51906EE3DA4B4A459C03BE53 /* APIClient.swift in Sources */,
+\t\t\t\tFB13C7C7E67745C5B82DD042 /* SettingsView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		2BFFF56EA413432CBD5F7720 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				GCC_DYNAMIC_NO_PIC = NO;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		CABABD05AB1D41E8BF43162F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				COPY_PHASE_STRIP = NO;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		FAC67066E1DA45EA84D53217 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = MagiCut/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.magicut.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		B60823BDA79643628ACED2EA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = MagiCut/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.magicut.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		95519F787C8646D49A5D03AB /* Build configuration list for PBXProject "MagiCut" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2BFFF56EA413432CBD5F7720 /* Debug */,
+				CABABD05AB1D41E8BF43162F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		9373550C0F2B49069A57108E /* Build configuration list for PBXNativeTarget "MagiCut" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FAC67066E1DA45EA84D53217 /* Debug */,
+				B60823BDA79643628ACED2EA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 8B044BA9033A4F16AF097397 /* Project object */;
+}

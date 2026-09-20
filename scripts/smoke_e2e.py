@@ -50,6 +50,14 @@ def main() -> int:
             health.raise_for_status()
             print("health:", health.json())
 
+            demo = client.post("/api/v1/jobs/demo")
+            demo.raise_for_status()
+            print("demo job:", demo.json()["job_id"])
+
+            listed = client.get("/api/v1/jobs", params={"limit": 5})
+            listed.raise_for_status()
+            print("list count:", listed.json()["count"])
+
             with video.open("rb") as f:
                 created = client.post(
                     "/api/v1/jobs",

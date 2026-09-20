@@ -1,5 +1,12 @@
 (() => {
-  const API_BASE = window.MAGICUT_API_BASE || "";
+  function loadSettings() {
+    return {
+      base: (localStorage.getItem("magicut_api_base") || window.MAGICUT_API_BASE || "").replace(/\/$/, ""),
+      token: localStorage.getItem("magicut_api_token") || "",
+    };
+  }
+
+  let settings = loadSettings();
 
   const els = {
     videoInput: document.getElementById("video-input"),
@@ -21,7 +28,14 @@
     downloadLink: document.getElementById("download-link"),
     resultMeta: document.getElementById("result-meta"),
     reset: document.getElementById("reset"),
+    apiBase: document.getElementById("api-base"),
+    apiToken: document.getElementById("api-token"),
+    saveSettings: document.getElementById("save-settings"),
+    settingsStatus: document.getElementById("settings-status"),
   };
+
+  els.apiBase.value = settings.base;
+  els.apiToken.value = settings.token;
 
   const state = {
     jobId: null,
@@ -41,7 +55,11 @@
   }
 
   async function api(path, options = {}) {
-    const res = await fetch(`${API_BASE}${path}`, options);
+    const headers = new Headers(options.headers || {});
+    if (settings.token) {
+      headers.set("Authorization", `Bearer ${settings.token}`);
+    }
+    const res = await fetch(`${settings.base}${path}`, { ...options, headers });
     if (!res.ok) {
       let detail = res.statusText;
       try {
@@ -273,4 +291,24 @@
   });
 
   window.addEventListener("resize", syncCanvasSize);
+
+  els.saveSettings.addEventListener("click", async () => {
+    settings = {
+      base: (els.apiBase.value || "").trim().replace(/\/$/, ""),
+      token: (els.apiToken.value || "").trim(),
+    };
+    localStorage.setItem("magicut_api_base", settings.base);
+    localStorage.setItem("magicut_api_token", settings.token);
+    try {
+      const res = await api("/health");
+      const h = await res.json();
+      els.settingsStatus.textContent = `已连接 · mode=${h.pipeline_mode} · cuda=${h.cuda_available}`;
+    } catch (err) {
+      els.settingsStatus.textContent = `保存成功，但健康检查失败：${err.message}`;
+    }
+  });
+
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("./sw.js").catch(() => {});
+  }
 })();
