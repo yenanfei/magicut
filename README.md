@@ -112,6 +112,10 @@ flowchart TD
 ```
 magicut/
 ├── app.py                     # MagiCut Gradio 交互式 Web 前端工作台
+├── server/                    # 云端 FastAPI（移动端 / App Store 后端原型）
+├── clients/
+│   ├── mobile_web/            # 可演示的手机网页客户端
+│   └── ios/                   # SwiftUI iOS 客户端骨架
 ├── demo_real_video.py         # 真实群舞基准测试与对比生成脚本
 ├── test_pipeline.py           # 自动化测试与验证脚本
 ├── requirements.txt           # Python 依赖清单
@@ -156,7 +160,21 @@ python app.py --server_name 0.0.0.0 --port 7860
 ```
 浏览器访问 `http://localhost:7860` 即可在可视化界面中点击选择主角并一键提取纯净单人直拍。
 
-### 4. 项目主页 (GitHub Pages)
+### 4. 云端 API + 移动端原型（App Store 路径）
+
+```bash
+MAGICUT_PIPELINE_MODE=mock ./scripts/run_api.sh
+```
+
+- 手机网页 / PWA：`http://localhost:8080/app/`
+- API 文档：`http://localhost:8080/docs`
+- iOS 工程：`clients/ios/MagiCut.xcodeproj`
+- GPU 部署：`bash scripts/remote_gpu_bootstrap.sh`（见 [`docs/APP_PROTOTYPE.md`](docs/APP_PROTOTYPE.md)）
+- 上架清单：[`docs/APP_STORE_CHECKLIST.md`](docs/APP_STORE_CHECKLIST.md)
+
+无 GPU 时自动使用 mock 管线，可完整走通「上传 → 点选 → 排队 → 下载」；在 SSH GPU 服务器上设 `MAGICUT_PIPELINE_MODE=real` 即可切换真实 MagiCut 推理。
+
+### 5. 项目主页 (GitHub Pages)
 
 在线访问：**https://yenanfei.github.io/magicut/**
 
@@ -166,6 +184,7 @@ python app.py --server_name 0.0.0.0 --port 7860
 
 ## 🔮 未来规划 (Roadmap)
 
+- [ ] 📱 **Mobile / App Store Client**：iOS 壳 + 云端 GPU API（见 `docs/APP_PROTOTYPE.md` 原型）
 - [ ] ✂️ **Smart Auto-Cut / Reframe**：智能主体镜头跟随与多机位画面自动重构
 - [ ] 🪄 **Generative Video FX**：AI 动态特效、光效与风格重塑
 - [ ] 🎵 **Beat-Sync Auto Edit**：基于音乐卡点与舞蹈节拍的自动化剪辑

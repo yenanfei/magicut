@@ -1,0 +1,15 @@
+# Replace magicut.example.com with your domain (DNS A/AAAA → this GPU host).
+{$MAGICUT_PUBLIC_HOST:magicut.example.com} {
+	encode gzip
+	reverse_proxy 127.0.0.1:8080
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+	}
+
+	request_body {
+		max_size 220MB
+	}
+}
