@@ -166,10 +166,11 @@ python app.py --server_name 0.0.0.0 --port 7860
 MAGICUT_PIPELINE_MODE=mock ./scripts/run_api.sh
 ```
 
-- 手机网页原型：`http://localhost:8080/app/`
+- 手机网页 / PWA：`http://localhost:8080/app/`
 - API 文档：`http://localhost:8080/docs`
-- iOS SwiftUI 骨架：`clients/ios/`
-- 部署说明：[`docs/APP_PROTOTYPE.md`](docs/APP_PROTOTYPE.md)
+- iOS 工程：`clients/ios/MagiCut.xcodeproj`
+- GPU 部署：`bash scripts/remote_gpu_bootstrap.sh`（见 [`docs/APP_PROTOTYPE.md`](docs/APP_PROTOTYPE.md)）
+- 上架清单：[`docs/APP_STORE_CHECKLIST.md`](docs/APP_STORE_CHECKLIST.md)
 
 无 GPU 时自动使用 mock 管线，可完整走通「上传 → 点选 → 排队 → 下载」；在 SSH GPU 服务器上设 `MAGICUT_PIPELINE_MODE=real` 即可切换真实 MagiCut 推理。
 
