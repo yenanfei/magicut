@@ -139,19 +139,30 @@
     els.pointStatus.textContent = `帧 ${res.headers.get("X-Frame-Index")}/${total} · 点击选择主角`;
   }
 
+  async function startFromJob(data, label) {
+    state.jobId = data.job_id;
+    state.points = [];
+    els.uploadStatus.textContent = `${label} · 任务 ${data.job_id}`;
+    show(els.stepSelect);
+    hide(els.stepProgress);
+    hide(els.stepResult);
+    await loadKeyframe();
+  }
+
   async function uploadVideo(file) {
     els.uploadStatus.textContent = "上传中…";
     const form = new FormData();
     form.append("video", file, file.name);
     const res = await api("/api/v1/jobs", { method: "POST", body: form });
     const data = await res.json();
-    state.jobId = data.job_id;
-    state.points = [];
-    els.uploadStatus.textContent = `已上传 · 任务 ${data.job_id}`;
-    show(els.stepSelect);
-    hide(els.stepProgress);
-    hide(els.stepResult);
-    await loadKeyframe();
+    await startFromJob(data, "已上传");
+  }
+
+  async function loadDemo() {
+    els.uploadStatus.textContent = "准备演示片段…";
+    const res = await api("/api/v1/jobs/demo", { method: "POST" });
+    const data = await res.json();
+    await startFromJob(data, "演示片段就绪");
   }
 
   async function startProcess() {
@@ -214,6 +225,13 @@
     } catch (err) {
       els.uploadStatus.textContent = err.message;
     }
+  });
+
+  els.demoBtn = document.getElementById("demo-btn");
+  els.demoBtn.addEventListener("click", () => {
+    loadDemo().catch((err) => {
+      els.uploadStatus.textContent = err.message;
+    });
   });
 
   els.loadFrame.addEventListener("click", () => {

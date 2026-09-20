@@ -104,6 +104,11 @@ html, body {
   transform: translateY(-1px);
 }
 
+.demo-btn {
+  width: 100%;
+  margin-top: 12px;
+}
+
 .file-title {
   font-family: var(--font-display);
   font-weight: 700;

@@ -16,6 +16,7 @@ from .config import (
     CORS_ORIGINS,
     MAX_UPLOAD_MB,
     ROOT_DIR,
+    UPLOAD_DIR,
     API_TOKEN,
     ensure_dirs,
 )
@@ -29,6 +30,32 @@ from .schemas import (
     ProcessRequest,
 )
 from .worker import JobWorker
+
+import cv2
+import numpy as np
+
+
+def _write_demo_clip(dest: Path) -> None:
+    """Tiny synthetic dance clip used by the mobile prototype demo button."""
+    w, h, n = 480, 270, 36
+    writer = cv2.VideoWriter(
+        str(dest),
+        cv2.VideoWriter_fourcc(*"mp4v"),
+        12.0,
+        (w, h),
+    )
+    for i in range(n):
+        frame = np.zeros((h, w, 3), dtype=np.uint8)
+        frame[:] = (42, 52, 62)
+        for y in range(0, h, 20):
+            cv2.line(frame, (0, y), (w, y), (70, 80, 90), 1)
+        for idx, cx in enumerate((120, 240, 360)):
+            color = (50, 200, 110) if idx == 1 else (120, 110, 210)
+            cy = 130 + (i % 6) - 3
+            cv2.ellipse(frame, (cx, cy + 40), (22, 10), 0, 0, 360, (30, 30, 30), -1)
+            cv2.circle(frame, (cx, cy), 32, color, -1)
+        writer.write(frame)
+    writer.release()
 
 ensure_dirs()
 store = JobStore()
@@ -107,6 +134,26 @@ async def create_job(video: UploadFile = File(...)) -> JobCreateResponse:
         job_id=record["job_id"],
         status=JobStatus.uploaded,
         filename=video.filename,
+    )
+
+
+@app.post(
+    "/api/v1/jobs/demo",
+    response_model=JobCreateResponse,
+    dependencies=[Depends(require_token)],
+)
+def create_demo_job() -> JobCreateResponse:
+    """Create a job from a built-in synthetic clip (no file picker needed)."""
+    ensure_dirs()
+    job_id = uuid4().hex[:12]
+    dest = UPLOAD_DIR / f"{job_id}.mp4"
+    _write_demo_clip(dest)
+    record = store.create(filename="demo_group_dance.mp4", upload_path=dest, job_id=job_id)
+    return JobCreateResponse(
+        job_id=record["job_id"],
+        status=JobStatus.uploaded,
+        filename=record["filename"],
+        message="Demo clip ready. Click the center dancer, then generate.",
     )
 
 
